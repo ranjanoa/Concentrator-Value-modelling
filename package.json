@@ -1,0 +1,19 @@
+{
+  "name": "concentrator-value-tool",
+  "version": "1.0.0",
+  "description": "A tool to model value in a mineral concentrator plant.",
+  "main": "index.html",
+  "scripts": {
+    "build:css": "tailwindcss -i ./src/styles.css -o ./public/styles.css --watch"
+  },
+  "keywords": [
+    "mining",
+    "metallurgy",
+    "value-modeling"
+  ],
+  "author": "Ranjan Ottemada Appanna",
+  "license": "ISC",
+  "devDependencies": {
+    "tailwindcss": "^3.4.1"
+  }
+}

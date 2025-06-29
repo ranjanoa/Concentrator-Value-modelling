@@ -1,0 +1,1149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Concentrator Plant Value Modelling Tool</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        /* Custom styles for a cleaner look */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f4f8; /* Light blue-gray background */
+            display: flex;
+            justify-content: center;
+            align-items: flex-start; /* Align to top for longer content */
+            min-height: 100vh;
+            margin: 0;
+            padding: 30px 15px; /* Add padding for overall layout */
+            box-sizing: border-box;
+        }
+        .container {
+            max-width: 900px; /* Wider container for more sections */
+            width: 100%;
+            background-color: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            box-sizing: border-box;
+            border: 1px solid #e2e8f0;
+        }
+        input[type="number"], select {
+            border: 1px solid #cbd5e0;
+            border-radius: 8px;
+            padding: 12px 16px;
+            width: 100%;
+            font-size: 1rem;
+            color: #2d3748;
+            transition: border-color 0.2s;
+            box-sizing: border-box; /* Ensure padding doesn't push width */
+        }
+        input[type="number"]:focus, select:focus {
+            outline: none;
+            border-color: #4299e1; /* Blue on focus */
+            box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.2);
+        }
+        label {
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 8px;
+            display: block;
+        }
+        button {
+            background-color: #38a169; /* Green button */
+            color: white;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-weight: 700;
+            transition: background-color 0.2s, transform 0.1s;
+            box-shadow: 0 4px 14px rgba(56, 161, 105, 0.35); /* Updated shadow for green */
+            width: 100%;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            border: none;
+        }
+        button:hover {
+            background-color: #2f855a; /* Darker green on hover */
+            transform: translateY(-2px);
+        }
+        button:active {
+            transform: translateY(0);
+        }
+        .result-box {
+            background-color: #f0f9ff; /* Lighter blue for result */
+            border: 1px solid #bae6fd;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 25px;
+            font-size: 1.1rem;
+            color: #2d3748;
+        }
+        .result-box h2 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 15px;
+            color: #0c4a6e;
+            text-align: center;
+        }
+        .result-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #e0f2fe;
+        }
+        .result-item:last-child {
+            border-bottom: none;
+        }
+        .result-item strong {
+            color: #1a202c; /* Dark text for values */
+            font-weight: 600;
+        }
+        .error-message {
+            color: #e53e3e; /* Red for errors */
+            font-size: 0.9rem;
+            margin-top: 5px;
+            text-align: left;
+            display: none; /* Hidden by default */
+        }
+        .error-message.visible {
+            display: block;
+        }
+        .section-title {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: #2c5282;
+            margin-top: 30px;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #a0aec0;
+        }
+        .tab-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+        .tab-button {
+            padding: 10px 20px;
+            border: none;
+            background-color: transparent;
+            color: #4a5568;
+            cursor: pointer;
+            font-weight: 600;
+            border-radius: 8px 8px 0 0;
+            transition: all 0.2s ease;
+            margin: 0 2px;
+            border-bottom: 2px solid transparent;
+        }
+        .tab-button.active {
+            color: #2c5282;
+            border-bottom: 2px solid #4299e1;
+        }
+        .tab-button:hover:not(.active) {
+            background-color: #edf2f7;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .scenario-section {
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            background-color: #f8fafc;
+        }
+        .scenario-section h3 {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #2c5282;
+            margin-bottom: 15px;
+            text-align: center;
+            border-bottom: 1px solid #e2e8f0;
+            padding-bottom: 10px;
+        }
+        .comparison-result {
+            background-color: #f0fff4; /* Light green for savings */
+            border: 1px solid #9ae6b4;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            font-size: 1.1rem;
+            text-align: center;
+        }
+        .comparison-result p {
+            margin-bottom: 8px;
+        }
+        .comparison-result strong {
+            color: #276749;
+            font-weight: 600;
+        }
+        .general-input-group {
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 1rem;
+        }
+        .hidden {
+            display: none;
+        }
+        .solution-checkbox {
+            display: flex;
+            align-items: center;
+            background-color: #fff;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+            cursor: pointer;
+        }
+        .solution-checkbox:hover {
+             background-color: #f7fafc;
+        }
+        .solution-checkbox input {
+            width: 1.25rem;
+            height: 1.25rem;
+        }
+        .solution-checkbox span {
+            margin-left: 0.75rem;
+            font-weight: 500;
+            color: #4a5568;
+        }
+        .about-section p {
+            color: #4a5568;
+            line-height: 1.6;
+            margin-bottom: 1rem;
+        }
+        .about-section a {
+            color: #3b82f6;
+            text-decoration: underline;
+        }
+        .about-section a:hover {
+            color: #2563eb;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1 class="text-4xl font-extrabold text-gray-800 text-center mb-8">Concentrator Plant Value Modelling Tool</h1>
+        <p class="text-gray-600 text-center mb-10">
+            Compare "Baseline" and "Solution Applied" scenarios across different process areas to calculate ROI and CO2 savings.
+        </p>
+
+        <div class="tab-buttons">
+            <button class="tab-button active" onclick="showTab('general', this)">General Parameters</button>
+            <button class="tab-button" onclick="showTab('crushing', this)">Crushing</button>
+            <button class="tab-button" onclick="showTab('grinding', this)">Grinding</button>
+            <button class="tab-button" onclick="showTab('flotation', this)">Flotation</button>
+            <button class="tab-button" onclick="showTab('dewatering', this)">Thickening & Dewatering</button>
+            <button class="tab-button" onclick="showTab('tailings', this)">Tailings Management</button>
+            <button class="tab-button" onclick="showTab('summary', this)">Summary</button>
+            <button class="tab-button" onclick="showTab('about', this)">About</button>
+        </div>
+
+        <!-- Tab Content: General -->
+        <div id="general" class="tab-content active">
+            <h2 class="section-title">General Plant Parameters</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                <div class="general-input-group">
+                    <label for="metal-select">Select Metal</label>
+                    <select id="metal-select" name="metal-select" onchange="updateMetalPrice()">
+                        <option value="copper">Copper</option>
+                        <option value="gold">Gold</option>
+                        <option value="iron">Iron Ore (62% Fe)</option>
+                        <option value="lead">Lead</option>
+                        <option value="tin">Tin</option>
+                        <option value="zinc">Zinc</option>
+                    </select>
+                </div>
+                <div class="general-input-group">
+                    <label for="metal-price">Metal Price ($/tonne)</label>
+                    <input type="number" id="metal-price" name="metal-price" step="0.01" value="10050.00">
+                    <p id="metal-priceError" class="error-message">Enter valid metal price (>0).</p>
+                </div>
+                <div class="general-input-group">
+                    <label for="feed-metal-grade">Feed Metal Grade (%)</label>
+                    <input type="number" id="feed-metal-grade" name="feed-metal-grade" step="0.01" value="0.8">
+                    <p id="feed-metal-gradeError" class="error-message">Enter valid grade (0-100).</p>
+                </div>
+                <div class="general-input-group">
+                    <label for="feed-mass-throughput">Feed Mass Throughput (tonnes/hour)</label>
+                    <input type="number" id="feed-mass-throughput" name="feed-mass-throughput" step="0.01" value="600">
+                    <p id="feed-mass-throughputError" class="error-message">Enter valid throughput (>0).</p>
+                </div>
+                <div class="general-input-group">
+                    <label for="plant-metal-recovery-grade">Plant Metal Recovery Grade (%) - Baseline</label>
+                    <input type="number" id="plant-metal-recovery-grade" name="plant-metal-recovery-grade" step="0.01" value="85">
+                    <p id="plant-metal-recovery-gradeError" class="error-message">Enter valid recovery (0-100).</p>
+                </div>
+                <div class="general-input-group">
+                    <label for="utilisation-percentage">Utilization Percentage (%)</label>
+                    <input type="number" id="utilisation-percentage" name="utilisation-percentage" step="0.01" value="95">
+                    <p id="utilisation-percentageError" class="error-message">Enter valid percentage (0-100).</p>
+                </div>
+                 <div class="general-input-group">
+                    <label for="electricityPrice" class="block text-sm">Electricity Price ($/kWh)</label>
+                    <input type="number" id="electricityPrice" placeholder="e.g., 0.12" class="mt-1" value="0.10">
+                    <p id="electricityPriceError" class="error-message">Enter valid electricity price (>=0).</p>
+                </div>
+                <div class="general-input-group">
+                    <label for="co2EmissionFactor" class="block text-sm">CO2 Emission Factor (kg CO2/kWh)</label>
+                    <input type="number" id="co2EmissionFactor" placeholder="e.g., 0.45" class="mt-1" value="0.45">
+                    <p id="co2EmissionFactorError" class="error-message">Enter valid CO2 factor (>=0).</p>
+                </div>
+            </div>
+             <div class="text-center p-4 bg-blue-50 rounded-lg">
+                <p class="text-gray-700">The general parameters above are used across all calculation tabs. Individual process improvements are defined within each respective tab.</p>
+            </div>
+        </div>
+
+        <!-- Tab Content: Crushing -->
+        <div id="crushing" class="tab-content">
+            <h2 class="section-title">Crushing Process Analysis</h2>
+            <div class="scenario-section mb-6">
+                <h3>Select Solutions to Apply</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                     <label class="solution-checkbox"><input type="checkbox" onchange="toggleSolutionInputs('crushing')"><span>Advanced Process Control</span></label>
+                     <label class="solution-checkbox"><input type="checkbox" onchange="toggleSolutionInputs('crushing')"><span>High-Performance Liners</span></label>
+                </div>
+            </div>
+            <div id="crushingSolutionSection" class="hidden">
+                <div class="scenario-section mb-6">
+                    <h3>Baseline Scenario</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label for="crushingPowerBaseline" class="block text-sm">Power Consumption (kWh/tonne ore)</label>
+                            <input type="number" id="crushingPowerBaseline" placeholder="e.g., 1.5" class="mt-1" value="1.5">
+                            <p id="crushingPowerBaselineError" class="error-message">Enter valid consumption (>=0).</p>
+                        </div>
+                        <div>
+                            <label for="crushingMaintBaseline" class="block text-sm">Maintenance Cost ($/tonne ore)</label>
+                            <input type="number" id="crushingMaintBaseline" placeholder="e.g., 0.15" class="mt-1" value="0.15">
+                            <p id="crushingMaintBaselineError" class="error-message">Enter valid cost (>=0).</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="scenario-section">
+                    <h3>Solution Parameters</h3>
+                     <p class="text-center text-gray-600 mb-4">Enter the combined expected improvements from the selected solutions below.</p>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label for="crushingSolutionCost" class="block text-sm">Solution Capital Cost ($)</label>
+                            <input type="number" id="crushingSolutionCost" placeholder="e.g., 500,000" class="mt-1" value="500000">
+                            <p id="crushingSolutionCostError" class="error-message">Enter valid cost (>=0).</p>
+                        </div>
+                         <div>
+                            <label for="crushingUtilizationIncrease" class="block text-sm">Throughput/Utilization Increase (%)</label>
+                            <input type="number" id="crushingUtilizationIncrease" class="mt-1" value="5">
+                            <p id="crushingUtilizationIncreaseError" class="error-message">Enter valid increase (>=0).</p>
+                        </div>
+                        <div>
+                            <label for="crushingEnergyReduction" class="block text-sm">Energy Reduction (%)</label>
+                            <input type="number" id="crushingEnergyReduction" class="mt-1" value="10">
+                            <p id="crushingEnergyReductionError" class="error-message">Enter valid reduction (0-100).</p>
+                        </div>
+                        <div>
+                            <label for="crushingMaintReduction" class="block text-sm">Maintenance Cost Reduction (%)</label>
+                            <input type="number" id="crushingMaintReduction" class="mt-1" value="15">
+                            <p id="crushingMaintReductionError" class="error-message">Enter valid reduction (0-100).</p>
+                        </div>
+                    </div>
+                    <button onclick="calculateCrushingImpactWrapper()" class="mt-6">Calculate Crushing Impact</button>
+                    <div id="crushingComparison" class="comparison-result hidden">
+                        <p>Increased Annual Revenue (from Throughput): <strong id="crushingRevenueGain">$0.00</strong></p>
+                        <p>Annual Cost Savings: <strong id="crushingSavings">$0.00</strong></p>
+                        <p>Total Annual Net Benefit: <strong id="crushingNetBenefit">$0.00</strong></p>
+                        <p>Annual CO2 Saved: <strong id="crushingCO2Saved">0.00 tonnes</strong></p>
+                        <p>ROI (over 1 year): <strong id="crushingROI">0.00%</strong></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab Content: Grinding -->
+        <div id="grinding" class="tab-content">
+            <h2 class="section-title">Grinding Process Analysis</h2>
+             <div class="scenario-section mb-6">
+                <h3>Select Solutions to Apply</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                     <label class="solution-checkbox"><input type="checkbox" onchange="toggleSolutionInputs('grinding')"><span>Process Control / APC</span></label>
+                     <label class="solution-checkbox"><input type="checkbox" onchange="toggleSolutionInputs('grinding')"><span>Optimized Liners & Media</span></label>
+                </div>
+            </div>
+            <div id="grindingSolutionSection" class="hidden">
+                <div class="scenario-section mb-6">
+                    <h3>Baseline Scenario</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label for="grindingPowerBaseline" class="block text-sm">Power Consumption (kWh/tonne ore)</label>
+                            <input type="number" id="grindingPowerBaseline" placeholder="e.g., 12" class="mt-1" value="12">
+                            <p id="grindingPowerBaselineError" class="error-message">Enter valid consumption (>=0).</p>
+                        </div>
+                        <div>
+                            <label for="grindingMediaBaseline" class="block text-sm">Grinding Media Consumption (kg/tonne ore)</label>
+                            <input type="number" id="grindingMediaBaseline" placeholder="e.g., 0.8" class="mt-1" value="0.8">
+                            <p id="grindingMediaBaselineError" class="error-message">Enter valid consumption (>=0).</p>
+                        </div>
+                        <div>
+                            <label for="mediaPrice" class="block text-sm">Grinding Media Price ($/kg)</label>
+                            <input type="number" id="mediaPrice" placeholder="e.g., 1.5" class="mt-1" value="1.5">
+                            <p id="mediaPriceError" class="error-message">Enter valid price (>=0).</p>
+                        </div>
+                        <div>
+                            <label for="grindingLinerMaintBaseline" class="block text-sm">Liner & Maintenance Cost ($/tonne ore)</label>
+                            <input type="number" id="grindingLinerMaintBaseline" placeholder="e.g., 0.25" class="mt-1" value="0.25">
+                            <p id="grindingLinerMaintBaselineError" class="error-message">Enter valid cost (>=0).</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="scenario-section">
+                     <h3>Solution Parameters</h3>
+                     <p class="text-center text-gray-600 mb-4">Enter the combined expected improvements from the selected solutions below.</p>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label for="grindingSolutionCost" class="block text-sm">Solution Capital Cost ($)</label>
+                            <input type="number" id="grindingSolutionCost" placeholder="e.g., 2,000,000" class="mt-1" value="2000000">
+                            <p id="grindingSolutionCostError" class="error-message">Enter valid cost (>=0).</p>
+                        </div>
+                        <div>
+                            <label for="grindingEnergyReduction" class="block text-sm">Energy Reduction (%)</label>
+                            <input type="number" id="grindingEnergyReduction" class="mt-1" value="8">
+                            <p id="grindingEnergyReductionError" class="error-message">Enter valid reduction (0-100).</p>
+                        </div>
+                        <div>
+                            <label for="grindingMediaReduction" class="block text-sm">Media Consumption Reduction (%)</label>
+                            <input type="number" id="grindingMediaReduction" class="mt-1" value="12">
+                            <p id="grindingMediaReductionError" class="error-message">Enter valid reduction (0-100).</p>
+                        </div>
+                         <div>
+                            <label for="grindingMaintReduction" class="block text-sm">Liner & Maint. Cost Reduction (%)</label>
+                            <input type="number" id="grindingMaintReduction" class="mt-1" value="10">
+                            <p id="grindingMaintReductionError" class="error-message">Enter valid reduction (0-100).</p>
+                        </div>
+                    </div>
+                    <button onclick="calculateGrindingImpactWrapper()" class="mt-6">Calculate Grinding Impact</button>
+                    <div id="grindingComparison" class="comparison-result hidden">
+                        <p>Annual Cost Savings: <strong id="grindingSavings">$0.00</strong></p>
+                        <p>Annual CO2 Saved: <strong id="grindingCO2Saved">0.00 tonnes</strong></p>
+                        <p>ROI (over 1 year): <strong id="grindingROI">0.00%</strong></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Tab Content: Flotation -->
+        <div id="flotation" class="tab-content">
+            <h2 class="section-title">Flotation Process Analysis</h2>
+            <div class="scenario-section mb-6">
+                <h3>Select Solutions to Apply</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                     <label class="solution-checkbox"><input type="checkbox" onchange="toggleSolutionInputs('flotation')"><span>Advanced Reagent Suite</span></label>
+                     <label class="solution-checkbox"><input type="checkbox" onchange="toggleSolutionInputs('flotation')"><span>Equipment Upgrade / Retrofit</span></label>
+                </div>
+            </div>
+            <div id="flotationSolutionSection" class="hidden">
+                <div class="scenario-section mb-6">
+                    <h3>Baseline Scenario</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label for="flotationPowerBaseline" class="block text-sm">Power Consumption (kWh/tonne ore)</label>
+                            <input type="number" id="flotationPowerBaseline" value="3.5" class="mt-1">
+                            <p id="flotationPowerBaselineError" class="error-message">Enter valid value (>=0).</p>
+                        </div>
+                        <div>
+                            <label for="collectorConsumptionBaseline" class="block text-sm">Collector Consumption (g/tonne ore)</label>
+                            <input type="number" id="collectorConsumptionBaseline" value="30" class="mt-1">
+                             <p id="collectorConsumptionBaselineError" class="error-message">Enter valid value (>=0).</p>
+                        </div>
+                        <div>
+                            <label for="frotherConsumptionBaseline" class="block text-sm">Frother Consumption (g/tonne ore)</label>
+                            <input type="number" id="frotherConsumptionBaseline" value="20" class="mt-1">
+                             <p id="frotherConsumptionBaselineError" class="error-message">Enter valid value (>=0).</p>
+                        </div>
+                    </div>
+                </div>
+                 <div class="scenario-section mb-6">
+                    <h3>Reagent Prices</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label for="collectorPrice" class="block text-sm">Collector Price ($/kg)</label>
+                            <input type="number" id="collectorPrice" value="2.5" class="mt-1">
+                            <p id="collectorPriceError" class="error-message">Enter valid value (>=0).</p>
+                        </div>
+                        <div>
+                            <label for="frotherPrice" class="block text-sm">Frother Price ($/kg)</label>
+                            <input type="number" id="frotherPrice" value="3.0" class="mt-1">
+                             <p id="frotherPriceError" class="error-message">Enter valid value (>=0).</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="scenario-section">
+                    <h3>Solution Parameters</h3>
+                     <p class="text-center text-gray-600 mb-4">Enter the combined expected improvements from the selected solutions below.</p>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label for="flotationSolutionCost" class="block text-sm">Solution Capital Cost ($)</label>
+                            <input type="number" id="flotationSolutionCost" value="750000" class="mt-1">
+                            <p id="flotationSolutionCostError" class="error-message">Enter valid cost (>=0).</p>
+                        </div>
+                        <div>
+                            <label for="flotationRecoveryIncrease" class="block text-sm">Recovery Improvement (absolute %)</label>
+                            <input type="number" id="flotationRecoveryIncrease" value="1.5" class="mt-1">
+                            <p id="flotationRecoveryIncreaseError" class="error-message">Enter valid increase (>=0).</p>
+                        </div>
+                         <div>
+                            <label for="flotationEnergyReduction" class="block text-sm">Energy Reduction (%)</label>
+                            <input type="number" id="flotationEnergyReduction" value="5" class="mt-1">
+                            <p id="flotationEnergyReductionError" class="error-message">Enter valid reduction (0-100).</p>
+                        </div>
+                        <div>
+                            <label for="flotationReagentReduction" class="block text-sm">Reagent Cost Reduction (%)</label>
+                            <input type="number" id="flotationReagentReduction" value="10" class="mt-1">
+                             <p id="flotationReagentReductionError" class="error-message">Enter valid reduction (0-100).</p>
+                        </div>
+                    </div>
+                    <button onclick="calculateFlotationImpactWrapper()" class="mt-6">Calculate Flotation Impact</button>
+                    <div id="flotationComparison" class="comparison-result hidden">
+                        <p>Increased Annual Revenue (from Recovery): <strong id="flotationRevenueGain">$0.00</strong></p>
+                        <p>Annual Cost Savings: <strong id="flotationSavings">$0.00</strong></p>
+                        <p>Total Annual Net Benefit: <strong id="flotationNetBenefit">$0.00</strong></p>
+                        <p>Annual CO2 Saved: <strong id="flotationCO2Saved">0.00 tonnes</strong></p>
+                        <p>ROI (over 1 year): <strong id="flotationROI">0.00%</strong></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Tab Content: Dewatering -->
+        <div id="dewatering" class="tab-content">
+             <h2 class="section-title">Thickening & Dewatering Analysis</h2>
+             <div class="scenario-section mb-6">
+                <h3>Select Solutions to Apply</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                     <label class="solution-checkbox"><input type="checkbox" onchange="toggleSolutionInputs('dewatering')"><span>High-Performance Thickener/Filter</span></label>
+                     <label class="solution-checkbox"><input type="checkbox" onchange="toggleSolutionInputs('dewatering')"><span>Advanced Flocculant</span></label>
+                </div>
+            </div>
+            <div id="dewateringSolutionSection" class="hidden">
+                 <div class="scenario-section mb-6">
+                    <h3>Baseline Scenario</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label for="dewateringPowerBaseline" class="block text-sm">Power Consumption (kWh/tonne ore)</label>
+                            <input type="number" id="dewateringPowerBaseline" value="1.5" class="mt-1">
+                            <p id="dewateringPowerBaselineError" class="error-message">Enter valid value (>=0).</p>
+                        </div>
+                        <div>
+                            <label for="flocculantConsumptionBaseline" class="block text-sm">Flocculant Consumption (g/tonne ore)</label>
+                            <input type="number" id="flocculantConsumptionBaseline" value="50" class="mt-1">
+                            <p id="flocculantConsumptionBaselineError" class="error-message">Enter valid value (>=0).</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="scenario-section mb-6">
+                    <h3>Reagent Prices</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label for="flocculantPrice" class="block text-sm">Flocculant Price ($/kg)</label>
+                            <input type="number" id="flocculantPrice" value="4.5" class="mt-1">
+                            <p id="flocculantPriceError" class="error-message">Enter valid value (>=0).</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="scenario-section">
+                    <h3>Solution Parameters</h3>
+                    <p class="text-center text-gray-600 mb-4">Enter the combined expected improvements from the selected solutions below.</p>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label for="dewateringSolutionCost" class="block text-sm">Solution Capital Cost ($)</label>
+                            <input type="number" id="dewateringSolutionCost" value="600000" class="mt-1">
+                            <p id="dewateringSolutionCostError" class="error-message">Enter valid cost (>=0).</p>
+                        </div>
+                        <div>
+                            <label for="dewateringEnergyReduction" class="block text-sm">Energy Reduction (%)</label>
+                            <input type="number" id="dewateringEnergyReduction" value="20" class="mt-1">
+                            <p id="dewateringEnergyReductionError" class="error-message">Enter valid value (0-100).</p>
+                        </div>
+                        <div>
+                            <label for="dewateringFlocculantReduction" class="block text-sm">Flocculant Reduction (%)</label>
+                            <input type="number" id="dewateringFlocculantReduction" value="15" class="mt-1">
+                            <p id="dewateringFlocculantReductionError" class="error-message">Enter valid value (0-100).</p>
+                        </div>
+                    </div>
+                    <button onclick="calculateDewateringImpactWrapper()" class="mt-6">Calculate Dewatering Impact</button>
+                    <div id="dewateringComparison" class="comparison-result hidden">
+                        <p>Annual Cost Savings: <strong id="dewateringSavings">$0.00</strong></p>
+                        <p>Annual CO2 Saved: <strong id="dewateringCO2Saved">0.00 tonnes</strong></p>
+                        <p>ROI (over 1 year): <strong id="dewateringROI">0.00%</strong></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Tab Content: Tailings -->
+        <div id="tailings" class="tab-content">
+            <h2 class="section-title">Tailings Management Analysis</h2>
+             <div class="scenario-section mb-6">
+                <h3>Select Solutions to Apply</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                     <label class="solution-checkbox"><input type="checkbox" onchange="toggleSolutionInputs('tailings')"><span>Paste Thickening / Filtering</span></label>
+                     <label class="solution-checkbox"><input type="checkbox" onchange="toggleSolutionInputs('tailings')"><span>Dry Stacking</span></label>
+                </div>
+            </div>
+            <div id="tailingsSolutionSection" class="hidden">
+                <div class="scenario-section mb-6">
+                    <h3>Baseline Scenario</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label for="tailingsCostBaseline" class="block text-sm">Management Cost ($/tonne ore)</label>
+                            <input type="number" id="tailingsCostBaseline" value="0.50" class="mt-1">
+                            <p id="tailingsCostBaselineError" class="error-message">Enter valid cost (>=0).</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="scenario-section">
+                    <h3>Solution Parameters</h3>
+                     <p class="text-center text-gray-600 mb-4">Enter the combined expected improvements from the selected solutions below.</p>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                         <div>
+                            <label for="tailingsSolutionCost" class="block text-sm">Solution Capital Cost ($)</label>
+                            <input type="number" id="tailingsSolutionCost" value="1200000" class="mt-1">
+                            <p id="tailingsSolutionCostError" class="error-message">Enter valid cost (>=0).</p>
+                        </div>
+                        <div>
+                            <label for="tailingsCostReduction" class="block text-sm">Management Cost Reduction (%)</label>
+                            <input type="number" id="tailingsCostReduction" value="25" class="mt-1">
+                            <p id="tailingsCostReductionError" class="error-message">Enter valid cost (0-100).</p>
+                        </div>
+                    </div>
+                    <button onclick="calculateTailingsImpactWrapper()" class="mt-6">Calculate Tailings Impact</button>
+                    <div id="tailingsComparison" class="comparison-result hidden">
+                        <p>Annual Cost Savings: <strong id="tailingsSavings">$0.00</strong></p>
+                        <p>ROI (over 1 year): <strong id="tailingsROI">0.00%</strong></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab Content: Summary -->
+        <div id="summary" class="tab-content">
+             <h2 class="section-title">Economic Summary (Baseline &amp; Solutions)</h2>
+             <p class="text-gray-600 text-center mb-6">
+                Enter overall financial data and click the button to calculate the baseline profitability and see the aggregated benefits from all selected solutions.
+            </p>
+            <!-- Inputs for the detailed economic model -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                <div>
+                    <label for="plantLifespan" class="block text-sm">Plant Lifespan (years)</label>
+                    <input type="number" id="plantLifespan" placeholder="e.g., 20" class="mt-1" value="20">
+                    <p id="plantLifespanError" class="error-message">Enter valid lifespan (>0).</p>
+                </div>
+                <div>
+                    <label for="totalCapitalCost" class="block text-sm">Total Plant Capital Cost (Excl. Solutions, $)</label>
+                    <input type="number" id="totalCapitalCost" placeholder="e.g., 150,000,000" class="mt-1" value="150000000">
+                    <p id="totalCapitalCostError" class="error-message">Enter valid capital cost (>=0).</p>
+                </div>
+                <div>
+                    <label for="laborCostPerTonne" class="block text-sm">Labor Cost ($/tonne ore)</label>
+                    <input type="number" id="laborCostPerTonne" placeholder="e.g., 2.50" class="mt-1" value="2.50">
+                    <p id="laborCostPerTonneError" class="error-message">Enter valid labor cost (>=0).</p>
+                </div>
+                <div>
+                    <label for="fixedOverheadPerYear" class="block text-sm">Fixed Overheads ($/year)</label>
+                    <input type="number" id="fixedOverheadPerYear" placeholder="e.g., 5,000,000" class="mt-1" value="5000000">
+                    <p id="fixedOverheadPerYearError" class="error-message">Enter valid overheads (>=0).</p>
+                </div>
+                 <div>
+                    <label for="concentrateGrade" class="block text-sm">Final Concentrate Grade (%)</label>
+                    <input type="number" id="concentrateGrade" placeholder="e.g., 25" class="mt-1" value="25">
+                    <p id="concentrateGradeError" class="error-message">Enter valid grade (0-100).</p>
+                </div>
+                <div>
+                    <label for="treatmentCharge" class="block text-sm">Smelter Treatment Charge ($/tonne concentrate)</label>
+                    <input type="number" id="treatmentCharge" placeholder="e.g., 150" class="mt-1" value="150">
+                    <p id="treatmentChargeError" class="error-message">Enter valid charge (>=0).</p>
+                </div>
+                <div>
+                    <label for="refiningCharge" class="block text-sm">Smelter Refining Charge ($/tonne metal)</label>
+                    <input type="number" id="refiningCharge" placeholder="e.g., 150" class="mt-1" value="330">
+                    <p id="refiningChargeError" class="error-message">Enter valid charge (>=0).</p>
+                </div>
+                <div>
+                    <label for="paymentPercentage" class="block text-sm">Metal Payment Percentage (%)</label>
+                    <input type="number" id="paymentPercentage" placeholder="e.g., 96.5" class="mt-1" value="96.5">
+                    <p id="paymentPercentageError" class="error-message">Enter valid percentage (0-100).</p>
+                </div>
+            </div>
+
+             <button onclick="calculateEconomicModel()">Calculate Full Economic Model & Benefits</button>
+
+            <div id="result" class="result-box mt-10 hidden">
+                <h2 class="text-center">Economic Summary per Tonne Ore (Baseline)</h2>
+                <div class="result-item"><span>Total Metal in Feed (tonnes/tonne ore):</span><strong id="metalInFeedTonnes">0.00</strong></div>
+                <div class="result-item"><span>Recovered Metal in Concentrate (tonnes/tonne ore):</span><strong id="recoveredMetalTonnes">0.00</strong></div>
+                <div class="result-item"><span>Concentrate Production (tonnes/tonne ore):</span><strong id="concentrateProduction">0.000</strong></div>
+                <div class="result-item"><span>Gross Concentrate Value ($/tonne ore):</span><strong id="grossConcentrateValue">$0.00</strong></div>
+                <div class="result-item"><span>Smelter Treatment Charge ($/tonne ore):</span><strong id="smelterTreatmentCost">$0.00</strong></div>
+                <div class="result-item"><span>Smelter Refining Charge ($/tonne ore):</span><strong id="smelterRefiningCost">$0.00</strong></div>
+                <div class="result-item font-extrabold text-lg mt-2 pt-2 border-t border-solid border-gray-300"><span>Net Smelter Return (NSR) ($/tonne ore):</span><strong id="nsrPerTonneOre">$0.00</strong></div>
+
+                <h3 class="text-xl font-bold text-gray-700 mt-6 mb-3 text-center">Operating Costs Breakdown ($/tonne ore)</h3>
+                <div class="result-item"><span>Crushing Costs:</span><strong id="crushingCosts">$0.00</strong></div>
+                <div class="result-item"><span>Grinding Costs:</span><strong id="grindingCosts">$0.00</strong></div>
+                <div class="result-item"><span>Flotation Costs:</span><strong id="flotationCosts">$0.00</strong></div>
+                <div class="result-item"><span>Dewatering Costs:</span><strong id="dewateringCosts">$0.00</strong></div>
+                <div class="result-item"><span>Tailings Costs:</span><strong id="tailingsCosts">$0.00</strong></div>
+                <div class="result-item"><span>Labor & Overheads:</span><strong id="laborAndOverheadsCosts">$0.00</strong></div>
+                <div class="result-item"><span>Capital Depreciation:</span><strong id="capitalDepreciationCosts">$0.00</strong></div>
+                <div class="result-item font-extrabold text-lg mt-4 pt-4 border-t-2 border-solid border-blue-300"><span>Total Operating Costs ($/tonne ore):</span><strong id="totalOperatingCosts">$0.00</strong></div>
+                <div class="result-item font-extrabold text-xl mt-4 pt-4 border-t-2 border-solid border-green-500"><span>Net Profit ($/tonne ore):</span><strong id="netProfitPerTonneOre">$0.00</strong></div>
+            </div>
+
+            <div id="summaryBenefit" class="result-box mt-10 hidden">
+                <h2 class="text-center">Overall Solution Benefits Summary</h2>
+                <div class="result-item"><span>Total Increased Annual Revenue:</span><strong id="summaryRevenueGain">$0.00</strong></div>
+                <div class="result-item"><span>Total Annual Cost Savings:</span><strong id="summaryCostSavings">$0.00</strong></div>
+                <div class="result-item font-extrabold text-lg text-blue-800"><span>Total Annual Net Benefit:</span><strong id="summaryNetBenefit">$0.00</strong></div>
+                <div class="result-item"><span>Total Annual CO2 Saved:</span><strong id="summaryCO2Saved">0.00 tonnes</strong></div>
+                <div class="result-item font-extrabold text-lg text-green-800"><span>Overall Project ROI (1 year):</span><strong id="summaryROI">0.00%</strong></div>
+            </div>
+        </div>
+
+        <!-- Tab Content: About -->
+        <div id="about" class="tab-content">
+            <h2 class="section-title">About This Value Modelling Tool</h2>
+            <div class="about-section mt-6">
+                <p>This tool is designed to help metallurgists, plant managers, and engineers model the financial and environmental impact of potential process improvements in a mineral concentrator plant.</p>
+                <p>By defining a baseline scenario and then selecting various technological solutions, users can quantify benefits in terms of increased revenue, cost savings, CO2 reduction, and overall project ROI. This allows for data-driven decision-making when evaluating capital projects and new technologies.</p>
+                
+                <div class="mt-10 p-6 bg-yellow-50 border border-yellow-200 rounded-lg">
+                    <h3 class="text-lg font-bold text-yellow-800">For Demo Purposes Only:</h3>
+                    <p class="text-yellow-700 mt-2">This application is developed for demonstration purposes to showcase how complex financial and operational models can be built into an interactive web tool.</p>
+                </div>
+                
+                <div class="mt-10 text-center">
+                    <p><strong>Developed by:</strong> Ranjan Ottemada Appanna</p>
+                    <p>For questions, support, or collaboration, please contact: <a href="mailto:ranjanoa@gmail.com">ranjanoa@gmail.com</a></p>
+                    <p class="mt-4">Explore more similar applications on <a href="https://static-portfolio-git-main-ranjanoas-projects.vercel.app/" target="_blank" rel="noopener noreferrer">my portfolio</a>.</p>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // --- GLOBAL VARIABLES & CONSTANTS ---
+        const metalPricesPerTonne = {
+            'copper': 10050.00,
+            'gold': 75000000.00, // Approx. based on $2330/oz
+            'iron': 115.00,     // For 62% Fe content ore
+            'lead': 2250.00,
+            'tin': 32800.00,
+            'zinc': 2850.00
+        };
+
+        // --- INITIALIZATION ---
+        document.addEventListener('DOMContentLoaded', () => {
+            updateMetalPrice();
+        });
+
+
+        // --- UI & TABBING ---
+        function showTab(tabName, clickedButton) {
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            document.querySelectorAll('.tab-button').forEach(button => button.classList.remove('active'));
+            document.getElementById(tabName).classList.add('active');
+            clickedButton.classList.add('active');
+        }
+        
+        function toggleSolutionInputs(processType) {
+            const solutionSection = document.getElementById(`${processType}SolutionSection`);
+            const checkboxes = document.querySelectorAll(`#${processType} .solution-checkbox input`);
+            const anyChecked = Array.from(checkboxes).some(cb => cb.checked);
+
+            if (anyChecked) {
+                solutionSection.classList.remove('hidden');
+            } else {
+                solutionSection.classList.add('hidden');
+                // When hiding, also hide the results for that section
+                const comparisonBox = document.getElementById(`${processType}Comparison`);
+                if(comparisonBox) comparisonBox.classList.add('hidden');
+            }
+        }
+
+        function updateMetalPrice() {
+            const metalSelect = document.getElementById('metal-select');
+            const metalPriceInput = document.getElementById('metal-price');
+            const selectedMetal = metalSelect.value;
+            if (metalPricesPerTonne[selectedMetal]) {
+                metalPriceInput.value = metalPricesPerTonne[selectedMetal].toFixed(2);
+            }
+        }
+
+        // --- HELPER FUNCTIONS ---
+        function validateInput(id, min = -Infinity, max = Infinity) {
+            const inputElement = document.getElementById(id);
+            const errorElement = document.getElementById(id + 'Error');
+            if(errorElement) errorElement.classList.remove('visible');
+            
+            if (!inputElement) return null; // Handle cases where input might not exist
+            
+            const value = parseFloat(inputElement.value);
+
+            if (isNaN(value) || value < min || value > max) {
+                if(errorElement) errorElement.classList.add('visible');
+                return null;
+            }
+            
+            return value;
+        }
+
+        function formatCurrency(value) {
+            if (isNaN(value) || value === null) return "$0.00";
+            return value.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
+        }
+        
+        function getAnnualThroughput(increasePercent = 0) {
+            const throughput = validateInput('feed-mass-throughput', 0.01);
+            const utilisation = validateInput('utilisation-percentage', 0, 100);
+            if (throughput === null || utilisation === null) return null;
+            const baseline_throughput = throughput * 24 * 365 * (utilisation / 100);
+            return baseline_throughput * (1 + (increasePercent / 100));
+        }
+        
+        function getBaselineNSRPerTonne() {
+             const i = {
+                feedGrade: validateInput('feed-metal-grade', 0, 100),
+                metalPrice: validateInput('metal-price', 0.01),
+                baselineRecovery: validateInput('plant-metal-recovery-grade', 0, 100),
+                concentrateGrade: validateInput('concentrateGrade', 0.001, 100),
+                treatmentCharge: validateInput('treatmentCharge', 0),
+                refiningCharge: validateInput('refiningCharge', 0),
+                paymentPercentage: validateInput('paymentPercentage', 0, 100),
+            };
+            if (Object.values(i).some(val => val === null)) return 0;
+            
+            const metalInFeedTonnes = i.feedGrade / 100;
+            const recoveredMetalTonnes = metalInFeedTonnes * (i.baselineRecovery / 100);
+            const concentrateProductionTonnes = recoveredMetalTonnes === 0 || (i.concentrateGrade / 100) === 0 ? 0 : recoveredMetalTonnes / (i.concentrateGrade / 100);
+
+            const grossValue = recoveredMetalTonnes * i.metalPrice;
+            const smelterTreatmentCost = i.treatmentCharge * concentrateProductionTonnes;
+            const smelterRefiningCost = i.refiningCharge * recoveredMetalTonnes;
+            const nsr = (grossValue - smelterTreatmentCost - smelterRefiningCost) * (i.paymentPercentage / 100);
+            return nsr > 0 ? nsr : 0;
+        }
+        
+        // --- CORE CALCULATION FUNCTIONS ---
+
+        function getSolutionImpact(processType) {
+            const solutionSection = document.getElementById(`${processType}SolutionSection`);
+            if (!solutionSection || solutionSection.classList.contains('hidden')) {
+                return { revenueGain: 0, costSavings: 0, netBenefit: 0, co2Saved: 0, capitalCost: 0 };
+            }
+
+            switch(processType) {
+                case 'crushing': return calculateCrushingImpact();
+                case 'grinding': return calculateGrindingImpact();
+                case 'flotation': return calculateFlotationImpact();
+                case 'dewatering': return calculateDewateringImpact();
+                case 'tailings': return calculateTailingsImpact();
+                default: return { revenueGain: 0, costSavings: 0, netBenefit: 0, co2Saved: 0, capitalCost: 0 };
+            }
+        }
+
+        function calculateCrushingImpact() {
+            const i = {
+                annualThroughputBaseline: getAnnualThroughput(0),
+                nsrPerTonne: getBaselineNSRPerTonne(),
+                capitalSolution: validateInput('crushingSolutionCost', 0),
+                utilizationIncrease: validateInput('crushingUtilizationIncrease', 0),
+                energyReduction: validateInput('crushingEnergyReduction', 0, 100),
+                maintReduction: validateInput('crushingMaintReduction', 0, 100),
+                powerBaseline: validateInput('crushingPowerBaseline', 0),
+                maintBaseline: validateInput('crushingMaintBaseline', 0),
+                electricityPrice: validateInput('electricityPrice', 0),
+                co2Factor: validateInput('co2EmissionFactor', 0)
+            };
+            if (Object.values(i).some(val => val === null)) return { revenueGain: 0, costSavings: 0, netBenefit: 0, co2Saved: 0, capitalCost: 0 };
+
+            const annualThroughputSolution = getAnnualThroughput(i.utilizationIncrease);
+            const costPerTonneBaseline = (i.powerBaseline * i.electricityPrice) + i.maintBaseline;
+            const powerSolution = i.powerBaseline * (1 - i.energyReduction / 100);
+            const maintSolution = i.maintBaseline * (1 - i.maintReduction / 100);
+            const costPerTonneSolution = (powerSolution * i.electricityPrice) + maintSolution;
+            const annualCostBaseline = costPerTonneBaseline * i.annualThroughputBaseline;
+            const annualCostSolution = costPerTonneSolution * annualThroughputSolution;
+            const costSavings = annualCostBaseline - annualCostSolution;
+            const revenueGain = (annualThroughputSolution - i.annualThroughputBaseline) * i.nsrPerTonne;
+            const netBenefit = revenueGain + costSavings;
+            const powerSavedKWh = (i.powerBaseline * i.annualThroughputBaseline) - (powerSolution * annualThroughputSolution);
+            const co2Saved = (powerSavedKWh * i.co2Factor) / 1000;
+            
+            return { revenueGain, costSavings, netBenefit, co2Saved, capitalCost: i.capitalSolution };
+        }
+
+        function calculateGrindingImpact() {
+            const i = {
+                annualThroughput: getAnnualThroughput(),
+                capitalSolution: validateInput('grindingSolutionCost', 0),
+                energyReduction: validateInput('grindingEnergyReduction', 0, 100),
+                mediaReduction: validateInput('grindingMediaReduction', 0, 100),
+                maintReduction: validateInput('grindingMaintReduction', 0, 100),
+                powerBaseline: validateInput('grindingPowerBaseline', 0),
+                mediaBaseline: validateInput('grindingMediaBaseline', 0),
+                maintBaseline: validateInput('grindingLinerMaintBaseline', 0),
+                mediaPrice: validateInput('mediaPrice', 0),
+                electricityPrice: validateInput('electricityPrice', 0),
+                co2Factor: validateInput('co2EmissionFactor', 0)
+            };
+            if (Object.values(i).some(val => val === null)) return { revenueGain: 0, costSavings: 0, netBenefit: 0, co2Saved: 0, capitalCost: 0 };
+
+            const costBaseline = ((i.powerBaseline * i.electricityPrice) + (i.mediaBaseline * i.mediaPrice) + i.maintBaseline) * i.annualThroughput;
+            const powerSolution = i.powerBaseline * (1 - i.energyReduction / 100);
+            const mediaSolution = i.mediaBaseline * (1 - i.mediaReduction / 100);
+            const maintSolution = i.maintBaseline * (1 - i.maintReduction / 100);
+            const costSolution = ((powerSolution * i.electricityPrice) + (mediaSolution * i.mediaPrice) + maintSolution) * i.annualThroughput;
+            const costSavings = costBaseline - costSolution;
+            const powerSaved = (i.powerBaseline - powerSolution) * i.annualThroughput;
+            const co2Saved = (powerSaved * i.co2Factor) / 1000;
+
+            return { revenueGain: 0, costSavings, netBenefit: costSavings, co2Saved, capitalCost: i.capitalSolution };
+        }
+
+        function calculateFlotationImpact() {
+            const i = {
+                annualThroughput: getAnnualThroughput(),
+                feedGrade: validateInput('feed-metal-grade', 0, 100),
+                metalPrice: validateInput('metal-price', 0.01),
+                capitalSolution: validateInput('flotationSolutionCost', 0),
+                recoveryIncrease: validateInput('flotationRecoveryIncrease', 0),
+                energyReduction: validateInput('flotationEnergyReduction', 0, 100),
+                reagentReduction: validateInput('flotationReagentReduction', 0, 100),
+                powerBaseline: validateInput('flotationPowerBaseline', 0),
+                collectorBaseline: validateInput('collectorConsumptionBaseline', 0),
+                frotherBaseline: validateInput('frotherConsumptionBaseline', 0),
+                collectorPrice: validateInput('collectorPrice', 0),
+                frotherPrice: validateInput('frotherPrice', 0),
+                electricityPrice: validateInput('electricityPrice', 0),
+                co2Factor: validateInput('co2EmissionFactor', 0)
+            };
+            if (Object.values(i).some(val => val === null)) return { revenueGain: 0, costSavings: 0, netBenefit: 0, co2Saved: 0, capitalCost: 0 };
+            
+            const annualMetalFeed = i.annualThroughput * (i.feedGrade / 100);
+            const revenueGain = annualMetalFeed * (i.recoveryIncrease / 100) * i.metalPrice;
+            const powerCostBaseline = i.powerBaseline * i.electricityPrice;
+            const reagentCostBaseline = (i.collectorBaseline / 1000 * i.collectorPrice) + (i.frotherBaseline / 1000 * i.frotherPrice);
+            const totalCostBaseline = (powerCostBaseline + reagentCostBaseline) * i.annualThroughput;
+            const powerSolution = i.powerBaseline * (1 - i.energyReduction / 100);
+            const reagentCostSolution = reagentCostBaseline * (1 - i.reagentReduction / 100);
+            const totalCostSolution = ((powerSolution * i.electricityPrice) + reagentCostSolution) * i.annualThroughput;
+            const costSavings = totalCostBaseline - totalCostSolution;
+            const netBenefit = revenueGain + costSavings;
+            const powerSaved = (i.powerBaseline - powerSolution) * i.annualThroughput;
+            const co2Saved = (powerSaved * i.co2Factor) / 1000;
+            
+            return { revenueGain, costSavings, netBenefit, co2Saved, capitalCost: i.capitalSolution };
+        }
+
+        function calculateDewateringImpact() {
+            const i = {
+                annualThroughput: getAnnualThroughput(),
+                capitalSolution: validateInput('dewateringSolutionCost', 0),
+                energyReduction: validateInput('dewateringEnergyReduction', 0, 100),
+                flocculantReduction: validateInput('dewateringFlocculantReduction', 0, 100),
+                powerBaseline: validateInput('dewateringPowerBaseline', 0),
+                flocculantBaseline: validateInput('flocculantConsumptionBaseline', 0),
+                flocculantPrice: validateInput('flocculantPrice', 0),
+                electricityPrice: validateInput('electricityPrice', 0),
+                co2Factor: validateInput('co2EmissionFactor', 0)
+            };
+            if (Object.values(i).some(val => val === null)) return { revenueGain: 0, costSavings: 0, netBenefit: 0, co2Saved: 0, capitalCost: 0 };
+
+            const costBaseline = ((i.powerBaseline * i.electricityPrice) + (i.flocculantBaseline / 1000 * i.flocculantPrice)) * i.annualThroughput;
+            const powerSolution = i.powerBaseline * (1 - i.energyReduction / 100);
+            const flocculantSolution = i.flocculantBaseline * (1 - i.flocculantReduction / 100);
+            const costSolution = ((powerSolution * i.electricityPrice) + (flocculantSolution / 1000 * i.flocculantPrice)) * i.annualThroughput;
+            const costSavings = costBaseline - costSolution;
+            const powerSaved = (i.powerBaseline - powerSolution) * i.annualThroughput;
+            const co2Saved = (powerSaved * i.co2Factor) / 1000;
+
+            return { revenueGain: 0, costSavings, netBenefit: costSavings, co2Saved, capitalCost: i.capitalSolution };
+        }
+
+        function calculateTailingsImpact() {
+            const i = {
+                annualThroughput: getAnnualThroughput(),
+                capitalSolution: validateInput('tailingsSolutionCost', 0),
+                costReduction: validateInput('tailingsCostReduction', 0, 100),
+                costBaseline: validateInput('tailingsCostBaseline', 0)
+            };
+            if (Object.values(i).some(val => val === null)) return { revenueGain: 0, costSavings: 0, netBenefit: 0, co2Saved: 0, capitalCost: 0 };
+
+            const costSavings = (i.costBaseline * (i.costReduction / 100)) * i.annualThroughput;
+            return { revenueGain: 0, costSavings, netBenefit: costSavings, co2Saved: 0, capitalCost: i.capitalSolution };
+        }
+
+        // --- UI WRAPPER FUNCTIONS ---
+        function calculateCrushingImpactWrapper() {
+            const result = getSolutionImpact('crushing');
+            const roi = result.capitalCost > 0 ? (result.netBenefit / result.capitalCost) * 100 : Infinity;
+            document.getElementById('crushingRevenueGain').textContent = formatCurrency(result.revenueGain);
+            document.getElementById('crushingSavings').textContent = formatCurrency(result.costSavings);
+            document.getElementById('crushingNetBenefit').textContent = formatCurrency(result.netBenefit);
+            document.getElementById('crushingCO2Saved').textContent = `${result.co2Saved.toFixed(2)} tonnes`;
+            document.getElementById('crushingROI').textContent = `${roi.toFixed(2)}%`;
+            document.getElementById('crushingComparison').classList.remove('hidden');
+        }
+
+        function calculateGrindingImpactWrapper() {
+            const result = getSolutionImpact('grinding');
+            const roi = result.capitalCost > 0 ? (result.netBenefit / result.capitalCost) * 100 : Infinity;
+            document.getElementById('grindingSavings').textContent = formatCurrency(result.costSavings);
+            document.getElementById('grindingCO2Saved').textContent = `${result.co2Saved.toFixed(2)} tonnes`;
+            document.getElementById('grindingROI').textContent = `${roi.toFixed(2)}%`;
+            document.getElementById('grindingComparison').classList.remove('hidden');
+        }
+
+        function calculateFlotationImpactWrapper() {
+            const result = getSolutionImpact('flotation');
+            const roi = result.capitalCost > 0 ? (result.netBenefit / result.capitalCost) * 100 : Infinity;
+            document.getElementById('flotationRevenueGain').textContent = formatCurrency(result.revenueGain);
+            document.getElementById('flotationSavings').textContent = formatCurrency(result.costSavings);
+            document.getElementById('flotationNetBenefit').textContent = formatCurrency(result.netBenefit);
+            document.getElementById('flotationCO2Saved').textContent = `${result.co2Saved.toFixed(2)} tonnes`;
+            document.getElementById('flotationROI').textContent = `${roi.toFixed(2)}%`;
+            document.getElementById('flotationComparison').classList.remove('hidden');
+        }
+
+        function calculateDewateringImpactWrapper() {
+            const result = getSolutionImpact('dewatering');
+            const roi = result.capitalCost > 0 ? (result.netBenefit / result.capitalCost) * 100 : Infinity;
+            document.getElementById('dewateringSavings').textContent = formatCurrency(result.costSavings);
+            document.getElementById('dewateringCO2Saved').textContent = `${result.co2Saved.toFixed(2)} tonnes`;
+            document.getElementById('dewateringROI').textContent = `${roi.toFixed(2)}%`;
+            document.getElementById('dewateringComparison').classList.remove('hidden');
+        }
+
+        function calculateTailingsImpactWrapper() {
+            const result = getSolutionImpact('tailings');
+            const roi = result.capitalCost > 0 ? (result.netBenefit / result.capitalCost) * 100 : Infinity;
+            document.getElementById('tailingsSavings').textContent = formatCurrency(result.costSavings);
+            document.getElementById('tailingsROI').textContent = `${roi.toFixed(2)}%`;
+            document.getElementById('tailingsComparison').classList.remove('hidden');
+        }
+
+
+        /** SUMMARY TAB (Full Economic Model) **/
+        function calculateEconomicModel() {
+            // --- Part 1: Calculate Baseline Economics ---
+            const i = {
+                annualThroughput: getAnnualThroughput(),
+                feedGrade: validateInput('feed-metal-grade', 0, 100),
+                metalPrice: validateInput('metal-price', 0.01),
+                baselineRecovery: validateInput('plant-metal-recovery-grade', 0, 100),
+                concentrateGrade: validateInput('concentrateGrade', 0.001, 100),
+                treatmentCharge: validateInput('treatmentCharge', 0),
+                refiningCharge: validateInput('refiningCharge', 0),
+                paymentPercentage: validateInput('paymentPercentage', 0, 100),
+                electricityPrice: validateInput('electricityPrice', 0),
+                crushingPowerBaseline: validateInput('crushingPowerBaseline', 0),
+                crushingMaintBaseline: validateInput('crushingMaintBaseline', 0),
+                grindingPowerBaseline: validateInput('grindingPowerBaseline', 0),
+                grindingMediaBaseline: validateInput('grindingMediaBaseline', 0),
+                mediaPrice: validateInput('mediaPrice', 0),
+                grindingLinerMaintBaseline: validateInput('grindingLinerMaintBaseline', 0),
+                flotationPowerBaseline: validateInput('flotationPowerBaseline', 0),
+                collectorConsumptionBaseline: validateInput('collectorConsumptionBaseline', 0),
+                collectorPrice: validateInput('collectorPrice', 0),
+                frotherConsumptionBaseline: validateInput('frotherConsumptionBaseline', 0),
+                frotherPrice: validateInput('frotherPrice', 0),
+                dewateringPowerBaseline: validateInput('dewateringPowerBaseline', 0),
+                flocculantConsumptionBaseline: validateInput('flocculantConsumptionBaseline', 0),
+                flocculantPrice: validateInput('flocculantPrice', 0),
+                tailingsCostBaseline: validateInput('tailingsCostBaseline', 0),
+                plantLifespan: validateInput('plantLifespan', 1),
+                totalCapitalCost: validateInput('totalCapitalCost', 0),
+                laborCostPerTonne: validateInput('laborCostPerTonne', 0),
+                fixedOverheadPerYear: validateInput('fixedOverheadPerYear', 0)
+            };
+
+            if (Object.values(i).some(val => val === null)) {
+                 document.getElementById('result').classList.add('hidden');
+                 document.getElementById('summaryBenefit').classList.add('hidden');
+                 return;
+            }
+
+            const metalInFeedTonnes = i.feedGrade / 100;
+            const recoveredMetalTonnes = metalInFeedTonnes * (i.baselineRecovery / 100);
+            const concentrateProductionTonnes = recoveredMetalTonnes === 0 || (i.concentrateGrade / 100) === 0 ? 0 : recoveredMetalTonnes / (i.concentrateGrade / 100);
+            const grossValue = recoveredMetalTonnes * i.metalPrice;
+            const smelterTreatmentCost = i.treatmentCharge * concentrateProductionTonnes;
+            const smelterRefiningCost = i.refiningCharge * recoveredMetalTonnes;
+            const nsr = (grossValue - smelterTreatmentCost - smelterRefiningCost) * (i.paymentPercentage / 100);
+            const crushingCost = (i.crushingPowerBaseline * i.electricityPrice) + i.crushingMaintBaseline;
+            const grindingCost = (i.grindingPowerBaseline * i.electricityPrice) + (i.grindingMediaBaseline * i.mediaPrice) + i.grindingLinerMaintBaseline;
+            const flotationCost = (i.flotationPowerBaseline * i.electricityPrice) + (i.collectorConsumptionBaseline / 1000 * i.collectorPrice) + (i.frotherConsumptionBaseline / 1000 * i.frotherPrice);
+            const dewateringCost = (i.dewateringPowerBaseline * i.electricityPrice) + (i.flocculantConsumptionBaseline / 1000 * i.flocculantPrice);
+            const tailingsCost = i.tailingsCostBaseline;
+            const laborAndOverheadsCost = i.laborCostPerTonne + (i.annualThroughput > 0 ? (i.fixedOverheadPerYear / i.annualThroughput) : 0);
+            const capitalDepreciationCost = i.annualThroughput > 0 ? (i.totalCapitalCost / i.plantLifespan) / i.annualThroughput : 0;
+            const totalOpCosts = crushingCost + grindingCost + flotationCost + dewateringCost + tailingsCost + laborAndOverheadsCost + capitalDepreciationCost;
+            const netProfit = nsr - totalOpCosts;
+
+            // Display Baseline Results
+            document.getElementById('metalInFeedTonnes').textContent = metalInFeedTonnes.toFixed(4);
+            document.getElementById('recoveredMetalTonnes').textContent = recoveredMetalTonnes.toFixed(4);
+            document.getElementById('concentrateProduction').textContent = concentrateProductionTonnes.toFixed(4);
+            document.getElementById('grossConcentrateValue').textContent = formatCurrency(grossValue);
+            document.getElementById('smelterTreatmentCost').textContent = formatCurrency(smelterTreatmentCost);
+            document.getElementById('smelterRefiningCost').textContent = formatCurrency(smelterRefiningCost);
+            document.getElementById('nsrPerTonneOre').textContent = formatCurrency(nsr);
+            document.getElementById('crushingCosts').textContent = formatCurrency(crushingCost);
+            document.getElementById('grindingCosts').textContent = formatCurrency(grindingCost);
+            document.getElementById('flotationCosts').textContent = formatCurrency(flotationCost);
+            document.getElementById('dewateringCosts').textContent = formatCurrency(dewateringCost);
+            document.getElementById('tailingsCosts').textContent = formatCurrency(tailingsCost);
+            document.getElementById('laborAndOverheadsCosts').textContent = formatCurrency(laborAndOverheadsCost);
+            document.getElementById('capitalDepreciationCosts').textContent = formatCurrency(capitalDepreciationCost);
+            document.getElementById('totalOperatingCosts').textContent = formatCurrency(totalOpCosts);
+            document.getElementById('netProfitPerTonneOre').textContent = formatCurrency(netProfit);
+            document.getElementById('result').classList.remove('hidden');
+
+            // --- Part 2: Aggregate All Solution Benefits ---
+            const benefits = [
+                getSolutionImpact('crushing'),
+                getSolutionImpact('grinding'),
+                getSolutionImpact('flotation'),
+                getSolutionImpact('dewatering'),
+                getSolutionImpact('tailings')
+            ];
+
+            const totalRevenueGain = benefits.reduce((acc, b) => acc + b.revenueGain, 0);
+            const totalCostSavings = benefits.reduce((acc, b) => acc + b.costSavings, 0);
+            const totalNetBenefit = benefits.reduce((acc, b) => acc + b.netBenefit, 0);
+            const totalCO2Saved = benefits.reduce((acc, b) => acc + b.co2Saved, 0);
+            const totalCapitalCost = benefits.reduce((acc, b) => acc + b.capitalCost, 0);
+            const totalROI = totalCapitalCost > 0 ? (totalNetBenefit / totalCapitalCost) * 100 : Infinity;
+
+            // Display Aggregated Benefits
+            document.getElementById('summaryRevenueGain').textContent = formatCurrency(totalRevenueGain);
+            document.getElementById('summaryCostSavings').textContent = formatCurrency(totalCostSavings);
+            document.getElementById('summaryNetBenefit').textContent = formatCurrency(totalNetBenefit);
+            document.getElementById('summaryCO2Saved').textContent = `${totalCO2Saved.toFixed(2)} tonnes`;
+            document.getElementById('summaryROI').textContent = `${totalROI.toFixed(2)}%`;
+            document.getElementById('summaryBenefit').classList.remove('hidden');
+        }
+    </script>
+
+</body>
+</html>
